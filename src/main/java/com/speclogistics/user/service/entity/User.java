@@ -1,16 +1,19 @@
 package com.speclogistics.user.service.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.speclogistics.user.service.enums.UserGrade;
 import com.speclogistics.user.service.enums.UserType;
-import lombok.*;
-import org.springframework.data.annotation.*;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Table;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Data
 @RequiredArgsConstructor
@@ -26,12 +29,12 @@ public class User {
     private String name;
 
     @CreatedDate
-    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate dateOfRegistration;
 
-    private UserType userType;
+    private String userType;
 
-    private UserGrade userGrade;
+    private String userGrade;
+
     @LastModifiedDate
     private LocalDate updatedAt;
     private String createdBy;
@@ -39,5 +42,21 @@ public class User {
     private String updatedBy;
 
     private LocalDate dateOfAssociation;
+
+    public void setUserGrade(UserGrade userGrade){
+        this.userGrade = Objects.isNull(userGrade) ? null : userGrade.toString();
+    }
+
+    public void setUserType(UserType userType){
+        this.userType = Objects.isNull(userType) ? null : userType.toString();
+    }
+
+    public UserType getUserType(){
+        return Objects.isNull(this.userType) ? null : UserType.valueOf(this.userType);
+    }
+
+    public UserGrade getUserGrade(){
+        return Objects.isNull(this.userGrade) ? null : UserGrade.valueOf(this.userGrade);
+    }
 
 }

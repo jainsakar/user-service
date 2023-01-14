@@ -3,6 +3,7 @@ package com.speclogistics.user.service.controller;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.speclogistics.user.service.entity.User;
+import com.speclogistics.user.service.models.dto.UserDto;
 import com.speclogistics.user.service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,7 @@ public class UserController {
 
 
     @PostMapping
-    public Mono<User> createUser(@Valid @RequestBody User user) {
-        return userService.createUser(user).doFirst(() -> log.info("Create User request received for user data : {}", user));
+    public Mono<User> createUser(@Valid @RequestBody UserDto userDto) {
+        return userService.createUser(userDto).doFirst(() -> log.info("Create User request received for user data : {}", userDto));
     }
 }
