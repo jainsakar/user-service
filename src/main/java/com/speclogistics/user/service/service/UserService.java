@@ -24,7 +24,14 @@ public class UserService {
     private final ObjectMapper mapper;
 
     public Flux<User> getAll(){
-        return userRepository.findAll();
+        return userRepository.findAll().switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND,"No Data found")))
+                .onErrorResume(error -> {
+                    if(error instanceof ResponseStatusException){
+                        throw (ResponseStatusException)error;
+                    }
+                    log.error("Error occurred while fetching data from database", error);
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid request, please check the data provided");
+                });
     }
 
     public Mono<User> createUser(UserDto userDto){
