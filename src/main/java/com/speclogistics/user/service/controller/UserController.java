@@ -37,4 +37,15 @@ public class UserController {
     public Mono<User> createUser(@Valid @RequestBody UserDto userDto) {
         return userService.createUser(userDto).doFirst(() -> log.info("Create User request received for user data : {}", userDto));
     }
+
+    @PatchMapping ({"/{userId}"})
+    public Mono<User> updateUser(@Valid @RequestBody UserDto userPatchDto, @PathVariable int userId){
+        return userService.updateUser(userPatchDto,userId);
+    }
+
+    @DeleteMapping ({"/{userId}"})
+    public Mono<User> enableDisableUser(@PathVariable int userId, @RequestParam (name = "active") final boolean active){
+        log.info("enable/Disable Request received for user id : {}", userId);
+        return userService.enableDisableUser(userId,active);
+    }
 }

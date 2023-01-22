@@ -6,12 +6,14 @@ import com.speclogistics.user.service.models.dto.UserDto;
 import com.speclogistics.user.service.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.time.LocalDate;
 
 @Service
@@ -23,28 +25,51 @@ public class UserService {
 
     private final ObjectMapper mapper;
 
-    public Flux<User> getAll(){
-        return userRepository.findAll().switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND,"No Data found")))
+    public Flux<User> getAll() {
+        return userRepository.findAll().switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "No Data found")))
                 .onErrorResume(error -> {
-                    if(error instanceof ResponseStatusException){
-                        throw (ResponseStatusException)error;
+                    if (error instanceof ResponseStatusException) {
+                        throw (ResponseStatusException) error;
                     }
                     log.error("Error occurred while fetching data from database", error);
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid request, please check the data provided");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid request, please check the data provided");
                 });
     }
 
-    public Mono<User> createUser(UserDto userDto){
-        User user = mapper.convertValue(userDto,User.class);
-        if(userDto.getParentId() != -1){
+    public Mono<User> createUser(UserDto userDto) {
+        User user = mapper.convertValue(userDto, User.class);
+        user.setStatus(true);
+        if (userDto.getParentId() != -1) {
             user.setDateOfAssociation(LocalDate.now());
         }
         return userRepository.save(user).onErrorResume(error -> {
             log.error("Error occurred while storing user in database", error);
-            if(error instanceof DataIntegrityViolationException){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,((DataIntegrityViolationException) error).getRootCause().getMessage());
+            if (error instanceof DataIntegrityViolationException) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ((DataIntegrityViolationException) error).getRootCause().getMessage());
             }
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid request, please check the data provided");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid request, please check the data provided");
         });
+    }
+
+    public Mono<User> updateUser(UserDto userDto, int id) {
+        return userRepository.findById(id).switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with the given Id"))).map(oldUser -> {
+            BeanUtils.copyProperties(userDto, oldUser);
+            if (userDto.getParentId() != -1) {
+                oldUser.setDateOfAssociation(LocalDate.now());
+            }
+            return oldUser;
+        }).flatMap(userRepository::save);
+    }
+
+    public Mono<User> enableDisableUser(int id, boolean active) {
+        return userRepository.findById(id).switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with the given Id"))).map(oldUser -> {
+            oldUser.setStatus(active);
+            return oldUser;
+        }).flatMap(userRepository::save).doOnSuccess(oldUser -> log.info("User enabled/disabled Successfully : {}", oldUser));
+    }
+
+    public Flux<User> getAllClientsDetailsForUser(int id) {
+        return userRepository.findAllByParentId(id).switchIfEmpty(Flux.error(new ResponseStatusException(HttpStatus.NOT_FOUND, " No client found with the given parent Id")));
+
     }
 }

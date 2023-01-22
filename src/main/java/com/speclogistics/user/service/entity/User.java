@@ -43,6 +43,8 @@ public class User {
 
     private LocalDate dateOfAssociation;
 
+    private char status;
+
     public void setUserGrade(UserGrade userGrade){
         this.userGrade = Objects.isNull(userGrade) ? null : userGrade.toString();
     }
@@ -51,12 +53,20 @@ public class User {
         this.userType = Objects.isNull(userType) ? null : userType.toString();
     }
 
+    public  void setStatus(boolean status){
+        this.status = status == true ? 'Y' : 'N';
+    }
+
     public UserType getUserType(){
         return Objects.isNull(this.userType) ? null : UserType.valueOf(this.userType);
     }
 
     public UserGrade getUserGrade(){
         return Objects.isNull(this.userGrade) ? null : UserGrade.valueOf(this.userGrade);
+    }
+
+    public boolean getStatus(){
+        return (this.status == 'Y' ? true : false);
     }
 
 }
