@@ -2,8 +2,10 @@ package com.speclogistics.user.service.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.speclogistics.order.service.grpcservice.PongResponse;
 import com.speclogistics.user.service.entity.User;
 import com.speclogistics.user.service.models.dto.UserDto;
+import com.speclogistics.user.service.service.GrpcClientService;
 import com.speclogistics.user.service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,8 @@ public class UserController {
 
     private final UserService userService;
 
+    private final GrpcClientService grpcClientService;
+
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     @GetMapping
@@ -30,6 +34,11 @@ public class UserController {
                     log.info("found {} users on get users request", userList.size());
                     return Flux.fromIterable(userList);
                 });
+    }
+
+    @GetMapping (value = "/ping")
+    public Mono<PongResponse> getPing() {
+        return grpcClientService.ping();
     }
 
 
