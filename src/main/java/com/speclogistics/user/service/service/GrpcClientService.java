@@ -1,35 +1,41 @@
 package com.speclogistics.user.service.service;
 
-import com.speclogistics.order.service.grpcservice.PingRequest;
-import com.speclogistics.order.service.grpcservice.PongResponse;
-import com.speclogistics.order.service.grpcservice.ReactorPingPongServiceGrpc;
+import com.speclogistics.order.service.grpcservice.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class GrpcClientService {
-    private ManagedChannel managedChannel;
-    private ReactorPingPongServiceGrpc.ReactorPingPongServiceStub serviceStub;
+    private ReactorPingPongServiceGrpc.ReactorPingPongServiceStub pongServiceStub;
+
+    private ReactorOrderBookingServiceGrpc.ReactorOrderBookingServiceStub orderBookingServiceStub;
 
     @PostConstruct
     public void setup(){
-        this.managedChannel = ManagedChannelBuilder
+        ManagedChannel managedChannel = ManagedChannelBuilder
                 .forAddress("localhost", 9090)
                 .usePlaintext()
                 .build();
-        this.serviceStub = ReactorPingPongServiceGrpc.newReactorStub(managedChannel);
+        this.pongServiceStub = ReactorPingPongServiceGrpc.newReactorStub(managedChannel);
+        this.orderBookingServiceStub = ReactorOrderBookingServiceGrpc.newReactorStub(managedChannel);
     }
 
     public Mono<PongResponse> ping() {
-        return serviceStub.ping(PingRequest.newBuilder()
+        return pongServiceStub.ping(PingRequest.newBuilder()
                 .setPing("Sakar")
                 .build());
+    }
+
+    public Flux<OrderBookingResp> bookOrders(List<OrderBookingDetails> orderBookingDetailsList){
+        return orderBookingServiceStub.bookOrders(Flux.fromIterable(orderBookingDetailsList));
     }
 
 

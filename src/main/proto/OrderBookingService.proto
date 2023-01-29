@@ -1,0 +1,36 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package com.speclogistics.order.service.grpcservice;
+
+enum ClientType{
+  DIAMOND = 0;
+  GOLD = 1;
+  SILVER = 2;
+  NORMAL = 3;
+}
+message Item{
+  int32 productId=1;
+  int32 quantity=2;
+}
+message ItemResp{
+  int32 productId=1;
+  int32 quantity=2;
+  double price=3;
+}
+message OrderBookingDetails{
+  int32 clientId=1;
+  int32 parentId=2;
+  ClientType clientType=3;
+  repeated Item items=4;
+}
+message OrderBookingResp{
+  int32 clientId=1;
+  int32 parentId=2;
+  ClientType clientType=3;
+  repeated ItemResp itemResponses=4;
+  double totalBillingAmount=5;
+}
+service OrderBookingService{
+  //bi directional streaming
+  rpc bookOrders(stream OrderBookingDetails) returns (stream OrderBookingResp);
+}
